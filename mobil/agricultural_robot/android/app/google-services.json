@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "684430554383",
+    "project_id": "brokoli01-8887d",
+    "storage_bucket": "brokoli01-8887d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684430554383:android:fa51045d8f73230ddf7a7a",
+        "android_client_info": {
+          "package_name": "com.example.agricultural_robot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-v4UATRiIjoeMyvu7t95zBwC2y9gWsJ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
