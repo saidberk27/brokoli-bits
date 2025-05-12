@@ -4,7 +4,7 @@ import numpy as np
 import time
 import torch
 
-def run_detection(rtsp_url, model_path):
+def run_detection(http_url, model_path):
     try:
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA kullanılamıyor! GPU'nuzun ve CUDA'nın doğru kurulu olduğundan emin olun.")
@@ -20,11 +20,11 @@ def run_detection(rtsp_url, model_path):
         model.conf = 0.25
         model.iou = 0.45
 
-        cap = cv2.VideoCapture(rtsp_url)
+        cap = cv2.VideoCapture(http_url)
         cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         if not cap.isOpened():
-            raise RuntimeError("RTSP stream'ine bağlanılamadı!")
+            raise RuntimeError("HTTP stream'ine bağlanılamadı!")
 
         print("Stream başlatıldı. Çıkmak için 'q' tuşuna basın.")
 
@@ -34,7 +34,6 @@ def run_detection(rtsp_url, model_path):
         frame_count = 0
         skip_frames = 2
 
-        # Tespit edilen nesneleri takip etmek için dictionary
         current_detections = {}
 
         while True:
@@ -49,9 +48,6 @@ def run_detection(rtsp_url, model_path):
 
             if frame_count % skip_frames == 0:
                 try:
-                    frame_tensor = torch.from_numpy(frame).to(device)
-
-                    # Her frame'de tespitleri sıfırla
                     current_detections.clear()
 
                     with torch.amp.autocast('cuda'):
@@ -64,7 +60,6 @@ def run_detection(rtsp_url, model_path):
                         )
                         result = results[0]
 
-                    # Tespitleri işle
                     for box in result.boxes:
                         x1, y1, x2, y2 = box.xyxy[0]
                         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
@@ -73,7 +68,6 @@ def run_detection(rtsp_url, model_path):
                         class_name = result.names[cls]
 
                         if conf > 0.6:
-                            # Tespit edilen nesneyi dictionary'e ekle
                             if class_name in current_detections:
                                 current_detections[class_name] += 1
                             else:
@@ -101,7 +95,6 @@ def run_detection(rtsp_url, model_path):
                                 2
                             )
 
-                    # Eğer tespit varsa, konsola yazdır
                     if current_detections:
                         print("\n--- Anlık Tespitler ---")
                         for obj, count in current_detections.items():
@@ -147,6 +140,6 @@ def run_detection(rtsp_url, model_path):
         torch.cuda.empty_cache()
 
 if __name__ == "__main__":
-    rtsp_url = "rtsp://192.168.7.252:8554/cam"
-    model_path = "tomato.pt"
-    run_detection(rtsp_url, model_path)
+    http_url = "http://192.168.7.252:8000/video_feed"  # HTTP video kaynağı
+    model_path = "yolov8n.pt"
+    run_detection(http_url, model_path)

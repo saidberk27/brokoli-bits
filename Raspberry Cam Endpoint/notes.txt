@@ -1,0 +1,1 @@
+mediamtx server must be online to run this script
