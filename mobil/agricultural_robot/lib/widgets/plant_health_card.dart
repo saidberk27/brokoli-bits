@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'mjpeg_stream.dart';
 
-class PlantHealthCard extends StatelessWidget {
+class PlantHealthCard extends StatefulWidget {
   final int healthPercentage;
   final String lastImageTime;
 
@@ -9,6 +10,32 @@ class PlantHealthCard extends StatelessWidget {
     required this.healthPercentage,
     required this.lastImageTime,
   }) : super(key: key);
+
+  @override
+  State<PlantHealthCard> createState() => _PlantHealthCardState();
+}
+
+class _PlantHealthCardState extends State<PlantHealthCard> {
+  late TextEditingController _controller;
+  String _currentStreamUrl = 'http://192.168.7.252:8000/video_feed';
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: _currentStreamUrl);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateStreamUrl() {
+    setState(() {
+      _currentStreamUrl = _controller.text.trim();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +49,57 @@ class PlantHealthCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHealthIndicator(),
+              // Sağlık göstergesi (%40)
+              Flexible(
+                flex: 4,
+                child: _buildHealthIndicator(),
+              ),
               const SizedBox(width: 16),
-              _buildPlantImage(),
+              // Kamera görüntüsü ve altındaki adres girişi (%60)
+              Flexible(
+                flex: 6,
+                child: Column(
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 4 / 3,
+                      child: MjpegStreamWidget(
+                        streamUrl: _currentStreamUrl,
+                        width: 640,
+                        height: 480,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _controller,
+                            decoration: const InputDecoration(
+                              labelText: 'Kamera Akış Adresi',
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: _updateStreamUrl,
+                          child: const Text('Güncelle'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Son Görüntü: ${widget.lastImageTime}"),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -47,11 +121,11 @@ class PlantHealthCard extends StatelessWidget {
                 width: 120,
                 height: 120,
                 child: CircularProgressIndicator(
-                  value: healthPercentage / 100,
+                  value: widget.healthPercentage / 100,
                   strokeWidth: 12,
                   backgroundColor: Colors.grey[300],
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    _getHealthColor(healthPercentage),
+                    _getHealthColor(widget.healthPercentage),
                   ),
                 ),
               ),
@@ -59,7 +133,7 @@ class PlantHealthCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "$healthPercentage%",
+                    "${widget.healthPercentage}%",
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -79,53 +153,13 @@ class PlantHealthCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          _getHealthMessage(healthPercentage),
+          _getHealthMessage(widget.healthPercentage),
           style: TextStyle(
-            color: _getHealthColor(healthPercentage),
+            color: _getHealthColor(widget.healthPercentage),
             fontWeight: FontWeight.w500,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildPlantImage() {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: InkWell(
-              onTap: () {},
-              child: Container(
-                height: 150,
-                width: double.infinity,
-                color: Colors.grey[200],
-                child: const Center(
-                  child: Icon(
-                    Icons.image,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                "Last Image: $lastImageTime",
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.photo_camera, size: 14, color: Colors.grey),
-            ],
-          ),
-        ],
-      ),
     );
   }
 

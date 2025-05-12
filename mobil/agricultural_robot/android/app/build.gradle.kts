@@ -49,6 +49,22 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+        packagingOptions {
+       // Fixes duplicate libraries build issue, 
+       // when your project uses more than one plugin that depend on C++ libs.
+        pickFirst("lib/**/libc++_shared.so")
+    }
+   
+   buildTypes {
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
 }
 
 flutter {

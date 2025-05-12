@@ -37,6 +37,7 @@ dependencies:
   camera: ^0.10.5+9
   firebase_core: ^2.32.0
   firebase_analytics: ^10.8.0
+  flutter_vlc_player: ^7.4.3
 
 dev_dependencies:
   flutter_test:
